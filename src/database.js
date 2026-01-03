@@ -577,8 +577,6 @@ export async function assignMailboxToUser(db, { userId = null, username = null, 
   
   const normalized = String(address || '').trim().toLowerCase();
   if (!normalized) throw new Error('邮箱地址无效');
-  // 查询或创建邮箱
-  const mailboxId = await getOrCreateMailboxId(db, normalized);
 
   // 获取用户 ID
   let uid = userId;
@@ -593,6 +591,9 @@ export async function assignMailboxToUser(db, { userId = null, username = null, 
   // 使用缓存校验上限
   const quota = await getCachedUserQuota(db, uid);
   if (quota.used >= quota.limit) throw new Error('已达到邮箱上限');
+
+  // 查询或创建邮箱
+  const mailboxId = await getOrCreateMailboxId(db, normalized);
 
   // 绑定（唯一约束避免重复）
   await db.prepare('INSERT OR IGNORE INTO user_mailboxes (user_id, mailbox_id) VALUES (?, ?)').bind(uid, mailboxId).run();
