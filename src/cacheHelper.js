@@ -137,7 +137,7 @@ export async function getCachedUserQuota(db, userId) {
   
   // 查询数据库
   const ures = await db.prepare('SELECT mailbox_limit FROM users WHERE id = ?').bind(userId).all();
-  const limit = ures?.results?.[0]?.mailbox_limit ?? 10;
+  const limit = ures?.results?.[0]?.mailbox_limit ?? 1;
   const cres = await db.prepare('SELECT COUNT(1) AS c FROM user_mailboxes WHERE user_id = ?').bind(userId).all();
   const used = cres?.results?.[0]?.c || 0;
   

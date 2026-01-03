@@ -107,7 +107,7 @@ export async function handleApiRequest(request, db, mailDomains, options = { moc
     try {
       const domains = MOCK_DOMAINS;
       for (const u of globalThis.__MOCK_USERS__) {
-        const maxCount = Math.min(u.mailbox_limit || 10, 8);
+        const maxCount = Math.min(u.mailbox_limit || 1, 8);
         const minCount = Math.min(3, maxCount);
         const count = Math.max(minCount, Math.min(maxCount, Math.floor(Math.random() * (maxCount - minCount + 1)) + minCount));
         const boxes = buildMockMailboxes(count, 0, domains);
@@ -149,7 +149,7 @@ export async function handleApiRequest(request, db, mailDomains, options = { moc
       const exists = (globalThis.__MOCK_USERS__ || []).some(u => u.username === username);
       if (exists) return new Response('用户名已存在', { status: 400 });
       const role = (body.role === 'admin') ? 'admin' : 'user';
-      const mailbox_limit = Math.max(0, Number(body.mailboxLimit || 10));
+      const mailbox_limit = Math.max(0, Number(body.mailboxLimit || 1));
       const id = ++globalThis.__MOCK_USER_LAST_ID__;
       const item = { id, username, role, can_send: 0, mailbox_limit, created_at: new Date().toISOString().replace('T',' ').slice(0,19) };
       globalThis.__MOCK_USERS__.unshift(item);
@@ -186,7 +186,7 @@ export async function handleApiRequest(request, db, mailDomains, options = { moc
       const u = (globalThis.__MOCK_USERS__ || []).find(x => x.username === username);
       if (!u) return new Response('用户不存在', { status: 404 });
       const boxes = globalThis.__MOCK_USER_MAILBOXES__?.get(u.id) || [];
-      if (boxes.length >= (u.mailbox_limit || 10)) return new Response('已达到邮箱上限', { status: 400 });
+      if (boxes.length >= (u.mailbox_limit || 1)) return new Response('已达到邮箱上限', { status: 400 });
       const item = { address, created_at: new Date().toISOString().replace('T',' ').slice(0,19), is_pinned: 0 };
       boxes.unshift(item);
       globalThis.__MOCK_USER_MAILBOXES__?.set(u.id, boxes);
@@ -266,7 +266,7 @@ export async function handleApiRequest(request, db, mailDomains, options = { moc
       const body = await request.json();
       const username = String(body.username || '').trim();
       const role = (body.role || 'user') === 'admin' ? 'admin' : 'user';
-      const mailboxLimit = Number(body.mailboxLimit || 10);
+      const mailboxLimit = Number(body.mailboxLimit || 1);
       const password = String(body.password || '').trim();
       let passwordHash = null;
       if (password){ passwordHash = await sha256Hex(password); }

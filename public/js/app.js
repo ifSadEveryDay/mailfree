@@ -1596,8 +1596,15 @@ async function loadMailboxes(options = {}){
     if (mbPage === 1 && !options.forceFresh){
       const mbCached = cacheGet('mailboxes:page1', 6*60*60*1000);
       if (Array.isArray(mbCached)){
-        const html = (mbCached||[]).map(x => (
-          `<div class="mailbox-item ${x.is_pinned ? 'pinned' : ''}" onclick="selectMailbox('${x.address}')">
+        const currentAddr = window.currentMailbox;
+        const html = (mbCached||[]).map(x => {
+          const isActive = currentAddr && x.address === currentAddr;
+          const classes = [
+            'mailbox-item',
+            x.is_pinned ? 'pinned' : '',
+            isActive ? 'active' : ''
+          ].filter(Boolean).join(' ');
+          return `<div class="${classes}" onclick="selectMailbox('${x.address}')">
             <div class="mailbox-content">
               <span class="address">${x.address}</span>
               <span class="time">${formatTs(x.created_at)}</span>
@@ -1608,8 +1615,8 @@ async function loadMailboxes(options = {}){
               </button>
               <button class="btn btn-ghost btn-sm del" onclick="deleteMailbox(event,'${x.address}')" title="删除">🗑️</button>
             </div>
-          </div>`
-        )).join('');
+          </div>`;
+        }).join('');
         els.mbList.innerHTML = html || '<div style="color:#94a3b8">暂无历史邮箱</div>';
         if (els.mbLoading) els.mbLoading.innerHTML = '';
         // 首屏用缓存渲染时，更新分页显示
@@ -1618,8 +1625,15 @@ async function loadMailboxes(options = {}){
       }
       const mbPrefetched = readPrefetch('mf:prefetch:mailboxes');
       if (!options.forceFresh && Array.isArray(mbPrefetched)){
-        const html = (mbPrefetched||[]).map(x => (
-          `<div class="mailbox-item ${x.is_pinned ? 'pinned' : ''}" onclick="selectMailbox('${x.address}')">
+        const currentAddr = window.currentMailbox;
+        const html = (mbPrefetched||[]).map(x => {
+          const isActive = currentAddr && x.address === currentAddr;
+          const classes = [
+            'mailbox-item',
+            x.is_pinned ? 'pinned' : '',
+            isActive ? 'active' : ''
+          ].filter(Boolean).join(' ');
+          return `<div class="${classes}" onclick="selectMailbox('${x.address}')">
             <div class="mailbox-content">
               <span class="address">${x.address}</span>
               <span class="time">${formatTs(x.created_at)}</span>
@@ -1630,8 +1644,8 @@ async function loadMailboxes(options = {}){
               </button>
               <button class="btn btn-ghost btn-sm del" onclick="deleteMailbox(event,'${x.address}')" title="删除">🗑️</button>
             </div>
-          </div>`
-        )).join('');
+          </div>`;
+        }).join('');
         els.mbList.innerHTML = html || '<div style="color:#94a3b8">暂无历史邮箱</div>';
         if (els.mbLoading) els.mbLoading.innerHTML = '';
         // 首屏用预取渲染时，更新分页显示
@@ -1657,8 +1671,15 @@ async function loadMailboxes(options = {}){
     const r = await api(`/api/mailboxes?${params.toString()}`, { signal: mController.signal });
     let items = await r.json();
     clearTimeout(mTimeout);
-    const html = (items||[]).map(x => (
-      `<div class="mailbox-item ${x.is_pinned ? 'pinned' : ''}" onclick="selectMailbox('${x.address}')">
+    const currentAddr = window.currentMailbox;
+    const html = (items||[]).map(x => {
+      const isActive = currentAddr && x.address === currentAddr;
+      const classes = [
+        'mailbox-item',
+        x.is_pinned ? 'pinned' : '',
+        isActive ? 'active' : ''
+      ].filter(Boolean).join(' ');
+      return `<div class="${classes}" onclick="selectMailbox('${x.address}')">
         <div class="mailbox-content">
           <span class="address">${x.address}</span>
           <span class="time">${formatTs(x.created_at)}</span>
@@ -1669,8 +1690,8 @@ async function loadMailboxes(options = {}){
           </button>
           <button class="btn btn-ghost btn-sm del" onclick="deleteMailbox(event,'${x.address}')" title="删除">🗑️</button>
         </div>
-      </div>`
-    )).join('');
+      </div>`;
+    }).join('');
     
     els.mbList.innerHTML = html || '<div style="color:#94a3b8">暂无历史邮箱</div>';
     if (els.mbLoading) els.mbLoading.innerHTML = '';
@@ -1708,6 +1729,18 @@ window.selectMailbox = async (addr) => {
   els.emailActions.style.display = 'flex';
   els.listCard.style.display = 'block';
   // 保持默认关闭，用户可点击按钮展开
+  // 高亮当前邮箱
+  try {
+    const allItems = els.mbList?.querySelectorAll('.mailbox-item');
+    allItems?.forEach(item => {
+      const addressSpan = item.querySelector('.address');
+      if (addressSpan?.textContent === addr) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+  } catch(_) {}
   // 重启自动刷新
   startAutoRefresh();
   // 标记进入二级页（移动端返回用）
@@ -2019,6 +2052,8 @@ function switchToInbox(){
   if (!viewLoaded.has(key)) { if (els.list) els.list.innerHTML = ''; }
   resetPager();
   refresh();
+  // 确保自动刷新在切换视图后继续工作
+  if (window.currentMailbox) startAutoRefresh();
   // 路由更新由 RouteManager 统一处理
 }
 function switchToSent(){
@@ -2031,6 +2066,8 @@ function switchToSent(){
   if (!viewLoaded.has(key)) { if (els.list) els.list.innerHTML = ''; }
   resetPager();
   refresh();
+  // 确保自动刷新在切换视图后继续工作
+  if (window.currentMailbox) startAutoRefresh();
   // 路由更新由 RouteManager 统一处理
 }
 // 导出函数供路由管理器调用

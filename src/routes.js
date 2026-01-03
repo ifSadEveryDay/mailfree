@@ -354,7 +354,7 @@ export function createRouter() {
             const headers = new Headers({ 'Content-Type': 'application/json' });
             headers.set('Set-Cookie', buildSessionCookie(token, request.url));
             const canSend = role === 'admin' ? 1 : (row.can_send ? 1 : 0);
-            const mailboxLimit = role === 'admin' ? (row.mailbox_limit || 20) : (row.mailbox_limit || 10);
+            const mailboxLimit = role === 'admin' ? (row.mailbox_limit || 20) : (row.mailbox_limit || 1);
             return new Response(JSON.stringify({ success: true, role, can_send: canSend, mailbox_limit: mailboxLimit }), { headers });
           }
         }

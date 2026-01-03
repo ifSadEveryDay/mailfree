@@ -668,7 +668,20 @@ els.aAssign.onclick = async () => {
 let isUnassigning = false;
 
 // 取消分配邮箱
-els.unassignOpen.onclick = () => openModal(els.unassignModal);
+els.unassignOpen.onclick = async () => {
+  openModal(els.unassignModal);
+  // 加载用户列表到下拉框
+  try {
+    const r = await api('/api/users?limit=100&offset=0');
+    if (r.ok) {
+      const users = await r.json();
+      els.unassignName.innerHTML = '<option value="">请选择用户</option>' + 
+        users.map(u => `<option value="${u.username}">${u.username} (${u.role === 'admin' ? '管理员' : '普通用户'})</option>`).join('');
+    }
+  } catch (e) {
+    console.error('加载用户列表失败:', e);
+  }
+};
 els.unassignSubmit.onclick = async () => {
   // 防止重复点击
   if (isUnassigning) {

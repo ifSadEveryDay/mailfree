@@ -291,14 +291,22 @@ body::before{
   scrollbar-gutter: stable both-edges;
 }
 
-/* 历史邮箱搜索框样式 */
-.sidebar-search{ margin: 6px 0 10px; }
+/* 历史邮箱搜索框样式 - 吸顶 */
+.sidebar-search{ 
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin: 0 0 10px;
+  padding: 6px 0;
+  background: var(--bg);
+  backdrop-filter: blur(8px);
+}
 .sidebar-search-input{
   width: 100%;
   height: 36px;
   padding: 8px 12px;
-  border: 1px solid var(--border-glass);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   background: var(--card-glass);
   box-shadow: var(--shadow-glass);
 }
@@ -1217,6 +1225,21 @@ body::before{
 .mailbox-item.selected{
   background: var(--primary-light);
   border-color: var(--primary);
+}
+
+.mailbox-item.active{
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.15) 0%, 
+    rgba(99, 102, 241, 0.1) 100%);
+  border-color: var(--primary);
+  border-left: 3px solid var(--primary);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  transform: translateX(2px);
+}
+
+.mailbox-item.active .address{
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .mailbox-item .address{
